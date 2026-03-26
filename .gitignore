@@ -2,6 +2,7 @@ node_modules/
 .expo/
 .expo-shared/
 web-build/
+dist/
 coverage/
 npm-debug.log*
 yarn-debug.log*

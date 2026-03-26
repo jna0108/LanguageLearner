@@ -11,15 +11,15 @@
     "test": "jest --watchAll=false"
   },
   "dependencies": {
-    "@react-native-async-storage/async-storage": "^1.23.1",
-    "@react-navigation/bottom-tabs": "^7.2.0",
-    "@react-navigation/native": "^7.0.14",
+    "@react-native-async-storage/async-storage": "2.1.2",
+    "@react-navigation/bottom-tabs": "7.2.0",
+    "@react-navigation/native": "7.2.1",
     "expo": "~53.0.0",
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
-    "react-native": "0.79.0",
-    "react-native-safe-area-context": "^5.4.0",
-    "react-native-screens": "^4.11.1"
+    "react-native": "0.79.6",
+    "react-native-safe-area-context": "5.4.0",
+    "react-native-screens": "~4.11.1"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
