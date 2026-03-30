@@ -11,11 +11,13 @@ import {
   View,
 } from 'react-native';
 import { addFlashcard } from '../storage/flashcards';
+import { translateKoreanToEnglish } from '../services/translate';
 
 export function AddWordScreen(): React.JSX.Element {
   const [word, setWord] = useState('');
   const [meaning, setMeaning] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
 
   const canSave = useMemo(
     () => word.trim().length > 0 && meaning.trim().length > 0 && !isSaving,
@@ -41,6 +43,35 @@ export function AddWordScreen(): React.JSX.Element {
     }
   }
 
+  async function handleTranslate(): Promise<void> {
+    const query = word.trim();
+
+    if (!query) {
+      Alert.alert('Add a word first', 'Type a Korean word, then tap Translate.');
+      return;
+    }
+
+    setIsTranslating(true);
+
+    try {
+      const translated = await translateKoreanToEnglish(query);
+
+      if (!translated) {
+        Alert.alert(
+          'No translation found',
+          'Could not find a different English translation for this word. You can type meaning manually.',
+        );
+        return;
+      }
+
+      setMeaning(translated);
+    } catch {
+      Alert.alert('Translation error', 'Could not translate right now. Please try again.');
+    } finally {
+      setIsTranslating(false);
+    }
+  }
+
   return (
     <KeyboardAvoidingView
       style={styles.screen}
@@ -55,6 +86,20 @@ export function AddWordScreen(): React.JSX.Element {
           placeholder="예: 사과"
           autoCapitalize="none"
         />
+
+        <Pressable
+          onPress={handleTranslate}
+          disabled={isTranslating}
+          style={({ pressed }: PressableStateCallbackType) => [
+            styles.secondaryButton,
+            isTranslating && styles.secondaryButtonDisabled,
+            pressed && !isTranslating && styles.buttonPressed,
+          ]}
+        >
+          <Text style={styles.secondaryButtonText}>
+            {isTranslating ? 'Translating...' : 'Translate'}
+          </Text>
+        </Pressable>
 
         <Text style={styles.label}>Meaning</Text>
         <TextInput
@@ -118,6 +163,22 @@ const styles = StyleSheet.create({
   },
   buttonPressed: {
     opacity: 0.85,
+  },
+  secondaryButton: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#E2E8F0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 8,
+  },
+  secondaryButtonDisabled: {
+    opacity: 0.6,
+  },
+  secondaryButtonText: {
+    color: '#0F172A',
+    fontWeight: '700',
+    fontSize: 14,
   },
   buttonText: {
     color: '#FFFFFF',
