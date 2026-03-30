@@ -13,15 +13,22 @@
       "**/*"
     ],
     "ios": {
+      "bundleIdentifier": "com.jna01.languagelearner",
       "supportsTablet": true
     },
     "android": {
+      "package": "com.jna01.languagelearner",
       "adaptiveIcon": {
         "backgroundColor": "#ffffff"
       }
     },
     "web": {
       "bundler": "metro"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "40bf4152-af2a-4691-8c76-5be6877dab77"
+      }
     }
   }
 }
