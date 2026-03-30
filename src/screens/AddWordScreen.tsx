@@ -11,13 +11,14 @@ import {
   View,
 } from 'react-native';
 import { addFlashcard } from '../storage/flashcards';
-import { translateKoreanToEnglish } from '../services/translate';
+import { translateEnglishToKorean, translateKoreanToEnglish } from '../services/translate';
 
 export function AddWordScreen(): React.JSX.Element {
   const [word, setWord] = useState('');
   const [meaning, setMeaning] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
+  const [isEnglishToKorean, setIsEnglishToKorean] = useState(false);
 
   const canSave = useMemo(
     () => word.trim().length > 0 && meaning.trim().length > 0 && !isSaving,
@@ -47,19 +48,28 @@ export function AddWordScreen(): React.JSX.Element {
     const query = word.trim();
 
     if (!query) {
-      Alert.alert('Add a word first', 'Type a Korean word, then tap Translate.');
+      Alert.alert(
+        'Add a word first',
+        isEnglishToKorean
+          ? 'Type an English word, then tap Translate.'
+          : 'Type a Korean word, then tap Translate.',
+      );
       return;
     }
 
     setIsTranslating(true);
 
     try {
-      const translated = await translateKoreanToEnglish(query);
+      const translated = isEnglishToKorean
+        ? await translateEnglishToKorean(query)
+        : await translateKoreanToEnglish(query);
 
       if (!translated) {
         Alert.alert(
           'No translation found',
-          'Could not find a different English translation for this word. You can type meaning manually.',
+          isEnglishToKorean
+            ? 'Could not find a different Korean translation for this word. You can type translation manually.'
+            : 'Could not find a different English translation for this word. You can type meaning manually.',
         );
         return;
       }
@@ -72,41 +82,66 @@ export function AddWordScreen(): React.JSX.Element {
     }
   }
 
+  function handleSwap(): void {
+    const currentWord = word;
+    const currentMeaning = meaning;
+
+    setWord(currentMeaning);
+    setMeaning(currentWord);
+    setIsEnglishToKorean((previous) => !previous);
+  }
+
   return (
     <KeyboardAvoidingView
       style={styles.screen}
       behavior={Platform.select({ ios: 'padding', android: undefined })}
     >
       <View style={styles.container}>
-        <Text style={styles.label}>Korean Word</Text>
+        <Text style={styles.label}>{isEnglishToKorean ? 'English Word' : 'Korean Word'}</Text>
         <TextInput
           style={styles.input}
           value={word}
           onChangeText={setWord}
-          placeholder="예: 사과"
+          placeholder={isEnglishToKorean ? 'Example: apple' : '예: 사과'}
           autoCapitalize="none"
         />
 
-        <Pressable
-          onPress={handleTranslate}
-          disabled={isTranslating}
-          style={({ pressed }: PressableStateCallbackType) => [
-            styles.secondaryButton,
-            isTranslating && styles.secondaryButtonDisabled,
-            pressed && !isTranslating && styles.buttonPressed,
-          ]}
-        >
-          <Text style={styles.secondaryButtonText}>
-            {isTranslating ? 'Translating...' : 'Translate'}
-          </Text>
-        </Pressable>
+        <View style={styles.actionRow}>
+          <Pressable
+            onPress={handleTranslate}
+            disabled={isTranslating}
+            style={({ pressed }: PressableStateCallbackType) => [
+              styles.secondaryButton,
+              isTranslating && styles.secondaryButtonDisabled,
+              pressed && !isTranslating && styles.buttonPressed,
+            ]}
+          >
+            <Text style={styles.secondaryButtonText}>
+              {isTranslating ? 'Translating...' : 'Translate'}
+            </Text>
+          </Pressable>
 
-        <Text style={styles.label}>Meaning</Text>
+          <Pressable
+            onPress={handleSwap}
+            disabled={isTranslating}
+            style={({ pressed }: PressableStateCallbackType) => [
+              styles.secondaryButton,
+              isTranslating && styles.secondaryButtonDisabled,
+              pressed && !isTranslating && styles.buttonPressed,
+            ]}
+          >
+            <Text style={styles.secondaryButtonText}>
+              {isEnglishToKorean ? 'Swap to KO → EN' : 'Swap to EN → KO'}
+            </Text>
+          </Pressable>
+        </View>
+
+        <Text style={styles.label}>{isEnglishToKorean ? 'Translation (Korean)' : 'Meaning'}</Text>
         <TextInput
           style={styles.input}
           value={meaning}
           onChangeText={setMeaning}
-          placeholder="Example: apple"
+          placeholder={isEnglishToKorean ? '예: 사과' : 'Example: apple'}
           autoCapitalize="none"
         />
 
@@ -165,11 +200,16 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   secondaryButton: {
-    alignSelf: 'flex-start',
     backgroundColor: '#E2E8F0',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
     marginBottom: 8,
   },
   secondaryButtonDisabled: {

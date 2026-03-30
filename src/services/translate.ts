@@ -12,14 +12,14 @@ function isDifferentTranslation(input: string, output: string): boolean {
   return normalize(input) !== normalize(output);
 }
 
-export async function translateKoreanToEnglish(word: string): Promise<string> {
-  const query = word.trim();
+async function translateText(query: string, sourceLang: string, targetLang: string): Promise<string> {
+  const trimmed = query.trim();
 
-  if (!query) {
+  if (!trimmed) {
     return '';
   }
 
-  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ko&tl=en&dt=t&q=${encodeURIComponent(query)}`;
+  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(trimmed)}`;
   const response = await fetch(url);
 
   if (!response.ok) {
@@ -38,5 +38,13 @@ export async function translateKoreanToEnglish(word: string): Promise<string> {
     .join('')
     .trim();
 
-  return isDifferentTranslation(query, translated) ? translated : '';
+  return isDifferentTranslation(trimmed, translated) ? translated : '';
+}
+
+export async function translateKoreanToEnglish(word: string): Promise<string> {
+  return translateText(word, 'ko', 'en');
+}
+
+export async function translateEnglishToKorean(word: string): Promise<string> {
+  return translateText(word, 'en', 'ko');
 }
