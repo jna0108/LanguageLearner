@@ -1,8 +1,14 @@
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import * as Speech from 'expo-speech';
 import React, { useCallback, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, PressableStateCallbackType, StyleSheet, Text, View } from 'react-native';
 import { getFlashcards } from '../storage/flashcards';
 import { Flashcard } from '../types/flashcard';
+
+function getSpeechLanguage(text: string): string {
+  return /[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(text) ? 'ko-KR' : 'en-US';
+}
 
 export function ReviewScreen(): React.JSX.Element {
   const [cards, setCards] = useState<Flashcard[]>([]);
@@ -36,6 +42,21 @@ export function ReviewScreen(): React.JSX.Element {
     });
   }
 
+  function handleSpeak(text: string): void {
+    const phrase = text.trim();
+
+    if (!phrase) {
+      return;
+    }
+
+    void Speech.stop();
+    Speech.speak(phrase, {
+      language: getSpeechLanguage(phrase),
+      pitch: 1,
+      rate: 0.9,
+    });
+  }
+
   if (!currentCard) {
     return (
       <View style={styles.screenCenter}>
@@ -52,10 +73,34 @@ export function ReviewScreen(): React.JSX.Element {
       </Text>
 
       <View style={styles.card}>
-        <Text style={styles.word}>{currentCard.word}</Text>
+        <View style={styles.wordRow}>
+          <Text style={styles.word}>{currentCard.word}</Text>
+          <Pressable
+            onPress={() => handleSpeak(currentCard.word)}
+            style={({ pressed }: PressableStateCallbackType) => [
+              styles.speakButton,
+              pressed && styles.speakButtonPressed,
+            ]}
+          >
+            <Ionicons name="volume-high-outline" size={22} color="#1E293B" />
+          </Pressable>
+        </View>
         <Text style={styles.instruction}>Try to remember the meaning before revealing it.</Text>
 
-        {showMeaning ? <Text style={styles.meaning}>{currentCard.meaning}</Text> : null}
+        {showMeaning ? (
+          <View style={styles.meaningRow}>
+            <Text style={styles.meaning}>{currentCard.meaning}</Text>
+            <Pressable
+              onPress={() => handleSpeak(currentCard.meaning)}
+              style={({ pressed }: PressableStateCallbackType) => [
+                styles.speakButton,
+                pressed && styles.speakButtonPressed,
+              ]}
+            >
+              <Ionicons name="volume-high-outline" size={20} color="#16A34A" />
+            </Pressable>
+          </View>
+        ) : null}
       </View>
 
       {!showMeaning ? (
@@ -109,7 +154,14 @@ const styles = StyleSheet.create({
     padding: 18,
     gap: 10,
   },
+  wordRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
   word: {
+    flex: 1,
     fontSize: 30,
     fontWeight: '800',
     color: '#1E293B',
@@ -119,10 +171,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   meaning: {
+    flex: 1,
     marginTop: 8,
     fontSize: 24,
     fontWeight: '700',
     color: '#16A34A',
+  },
+  meaningRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  speakButton: {
+    borderRadius: 16,
+    padding: 4,
+  },
+  speakButtonPressed: {
+    opacity: 0.6,
   },
   primaryButton: {
     marginTop: 14,
