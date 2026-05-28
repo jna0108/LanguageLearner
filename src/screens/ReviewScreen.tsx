@@ -10,6 +10,25 @@ function getSpeechLanguage(text: string): string {
   return /[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(text) ? 'ko-KR' : 'en-US';
 }
 
+function shuffleCards(items: Flashcard[]): Flashcard[] {
+  const shuffled = [...items];
+
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    const currentCard = shuffled[index];
+    const randomCard = shuffled[randomIndex];
+
+    if (!currentCard || !randomCard) {
+      continue;
+    }
+
+    shuffled[index] = randomCard;
+    shuffled[randomIndex] = currentCard;
+  }
+
+  return shuffled;
+}
+
 export function ReviewScreen(): React.JSX.Element {
   const [cards, setCards] = useState<Flashcard[]>([]);
   const [index, setIndex] = useState(0);
@@ -17,7 +36,7 @@ export function ReviewScreen(): React.JSX.Element {
 
   const loadCards = useCallback(async () => {
     const allCards = await getFlashcards();
-    setCards(allCards);
+    setCards(shuffleCards(allCards));
     setIndex(0);
     setShowMeaning(false);
   }, []);
