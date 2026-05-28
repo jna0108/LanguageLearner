@@ -11,6 +11,9 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "esModuleInterop": true,
+    "types": [
+      "jest"
+    ],
     "typeRoots": [
       "./node_modules/@types"
     ],
